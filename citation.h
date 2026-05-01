@@ -5,7 +5,7 @@
 #include <string>
 #include <nlohmann/json.hpp>
 #include <cpp-httplib/httplib.h>
-
+#include "utils.hpp"
 
 enum class CiteType {
 	BOOK,
