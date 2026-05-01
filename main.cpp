@@ -18,6 +18,12 @@ std::vector<Citation*> loadCitations(const std::string& filename) {
     }
     nlohmann::json data = nlohmann::json::parse(file);
     for (int i{ 0 }; i < (data["citations"].size()); i++) {
+        if (!data["citations"][i].contains("id") || !data["citations"][i].contains("type")) {
+            std::exit(1);
+        }
+        if (!data["citations"][i]["id"].is_string() || !data["citations"][i]["type"].is_string()) {
+            std::exit(1);
+        }
         id = data["citations"][i]["id"];
         type = data["citations"][i]["type"];
         //check id
@@ -30,16 +36,30 @@ std::vector<Citation*> loadCitations(const std::string& filename) {
         }
         //check/define type
         if (type == "book") {
+            if (!data["citations"][i].contains("isbn") || !data["citations"][i]["isbn"].is_string()) {
+                std::exit(1);
+            }
             Book* tmptr = new Book(id, data["citations"][i]["isbn"]);
             tmptr->search();
             citations.push_back(tmptr);  
         }
         else if (type == "webpage") {
+            if (!data["citations"][i].contains("url") || !data["citations"][i]["url"].is_string()) {
+                std::exit(1);
+            }
             Webpage* tmptr = new Webpage(id, data["citations"][i]["url"]);
             tmptr->search();
             citations.push_back(tmptr);
         }
         else if (type == "article") {
+            if (!data["citations"][i].contains("title") || !data["citations"][i]["title"].is_string() ||
+                !data["citations"][i].contains("author") || !data["citations"][i]["author"].is_string() ||
+                !data["citations"][i].contains("journal") || !data["citations"][i]["journal"].is_string() ||
+                !data["citations"][i].contains("year") || !data["citations"][i]["year"].is_number_integer() ||
+                !data["citations"][i].contains("volume") || !data["citations"][i]["volume"].is_number_integer() ||
+                !data["citations"][i].contains("issue") || !data["citations"][i]["issue"].is_number_integer()) {
+                std::exit(1);
+            }
             citations.push_back(new Article(id, data["citations"][i]["title"], data["citations"][i]["author"], 
                 data["citations"][i]["journal"], data["citations"][i]["year"].get<int>(), 
                 data["citations"][i]["volume"].get<int>(), data["citations"][i]["issue"].get<int>()));
@@ -148,7 +168,12 @@ int main(int argc, char** argv) {
     else {
         input = readFromFile(input_path);
     }
-    //output
+    
+    //citation
+    auto citations = loadCitations(citation_path);
+    std::vector<Citation*> printedCitations{};
+
+    //output(in case the output is constructed)
     std::ofstream outFile;
     std::ostream* output = &std::cout;
     if (!(output_path.empty())) {
@@ -160,10 +185,6 @@ int main(int argc, char** argv) {
             output = &outFile;
         }
     }
-    
-    //citation
-    auto citations = loadCitations(citation_path);
-    std::vector<Citation*> printedCitations{};
     
     // FIXME: read all input to the string(done up), todo: and process citations in the input text(damn I can't be more robust)
     for (size_t i = 0; i < input.size(); i++) {
@@ -215,6 +236,9 @@ int main(int argc, char** argv) {
     std::sort(printedCitations.begin(), printedCitations.end(), [](Citation* A, Citation* B) {return A->id < B->id;});
 
     *output << input;  // print the paragraph first
+    if (!input.empty() && input.back() != '\n') {
+        *output << '\n';
+    }
     *output << "\n\nReferences:\n";
     
     for (auto c : printedCitations) {
