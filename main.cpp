@@ -17,6 +17,9 @@ std::vector<Citation*> loadCitations(const std::string& filename) {
         std::exit(1);
     }
     nlohmann::json data = nlohmann::json::parse(file);
+    if (!data.contains("citations") || !data["citations"].is_array()) {
+        std::exit(1);
+    }
     for (int i{ 0 }; i < (data["citations"].size()); i++) {
         if (!data["citations"][i].contains("id") || !data["citations"][i].contains("type")) {
             std::exit(1);
