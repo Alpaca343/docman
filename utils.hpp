@@ -4,8 +4,24 @@
 
 #include <string>
 #include <sstream>
-
+#include <fstream>
 const std::string API_ENDPOINT{"http://docman.zhuof.wang"};
+
+inline std::string readFromFile(const std::string& filename) {
+    std::ifstream file{ filename };
+    if (!file.is_open())
+    {
+        std::exit(1);
+    }
+    else {
+        std::stringstream ss;
+        std::string str;
+        ss << file.rdbuf();
+        str = ss.str();
+        return str;
+    }
+
+}
 
 inline std::string encodeUriComponent(const std::string& s) {
     std::string encoded;
