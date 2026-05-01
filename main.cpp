@@ -172,19 +172,6 @@ int main(int argc, char** argv) {
     //citation
     auto citations = loadCitations(citation_path);
     std::vector<Citation*> printedCitations{};
-
-    //output(in case the output is constructed)
-    std::ofstream outFile;
-    std::ostream* output = &std::cout;
-    if (!(output_path.empty())) {
-        outFile.open(output_path);
-        if (!outFile.is_open()) {
-            std::exit(1);
-        }
-        else {
-            output = &outFile;
-        }
-    }
     
     // FIXME: read all input to the string(done up), todo: and process citations in the input text(damn I can't be more robust)
     for (size_t i = 0; i < input.size(); i++) {
@@ -235,11 +222,24 @@ int main(int argc, char** argv) {
 
     std::sort(printedCitations.begin(), printedCitations.end(), [](Citation* A, Citation* B) {return A->id < B->id;});
 
+    //output(in case the output is constructed)
+    std::ofstream outFile;
+    std::ostream* output = &std::cout;
+    if (!(output_path.empty())) {
+        outFile.open(output_path);
+        if (!outFile.is_open()) {
+            std::exit(1);
+        }
+        else {
+            output = &outFile;
+        }
+    }
+    
     *output << input;  // print the paragraph first
     if (!input.empty() && input.back() != '\n') {
         *output << '\n';
     }
-    *output << "\n\nReferences:\n";
+    *output << "\nReferences:\n";
     
     for (auto c : printedCitations) {
         // FIXME: print citation
